@@ -1,0 +1,40 @@
+
+services:
+  db:
+    image: postgres:16
+    container_name: devboard_db
+    environment:
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: devboard
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: devboard_backend
+    environment:
+      # 로컬(127.0.0.1) 대신 컨테이너 이름(db)으로 접속하도록 오버라이드
+      DB_HOST: db 
+      DB_USER: devuser
+      DB_PASSWORD: devpassword
+      DB_NAME: devboard
+      DB_PORT: 5432
+      JWT_SECRET: devboard_super_secret_key
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: devboard_frontend
+    ports:
+      - "80:80" # 웹의 기본 포트인 80번으로 Nginx 개방
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
